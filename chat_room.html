@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fastapi WebSocket简易聊天室案例</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.bootcdn.net/ajax/libs/vue/2.6.14/vue.min.js"></script>
+
+    <style>
+        .userlistbox{
+            overflow-y: scroll;
+        }
+        .userchatbox{
+            overflow-y: scroll;
+        }
+        .secdmsgtools{
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+<div id="app" class="panel panel-default">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3 userlistbox" style="background-color: antiquewhite; box-shadow: inset 1px -1px 1px #444, inset -1px 1px 1px #444;">
+                <h4>在线用户</h4>
+                <ul>
+                    <li v-for="username in users":key="username">用户:{{username}}</li>
+                </ul>
+            </div>
+            <div class="col-md-9" style="background-color: aliceblue; box-shadow: inset 1px -1px 1px #444, inset -1px 1px 1px #444;">
+                <h4>聊天内容</h4>
+                <div class="userchatbox">
+                    <div>
+                        <li style="color: blue;" v-for="(msg,index) in  messages" :key="msg">{{msg}}</li>
+                    </div>
+                </div>
+                <form class="secdmsgtools">
+                    <div clas="form-group row">
+                        <div class="form-group row">
+                            <div class="col-md-11">
+                                <div class="input-group" style="background-color: #007bff; box-shadow: inset 1px -1px 1px #444, inset -1px 1px 1px #444;">
+                                    <span class="input-group-addon">消息内容:</span>
+                                    <input type="text" class="form-control" v-model="sendmsg">
+                                    <span class="input-group-btn">
+                                    <button class="btn btn-default" type="button" @click="send">发送</button>
+                                    </span>
+                                </div><!-- /input-group -->
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var app=new Vue({
+        el:'#app',
+        data:{
+            title:'Fastapi WebSocket简易聊天室案例',
+            wsurl:"ws://127.0.0.1:8000/api/v1/room/socketws",
+            socket:"",
+            messages:[],
+            users:[],
+            sendmsg:""
+        },
+        mounted(){
+            const token = new URLSearchParams(window.location.search).get("token")
+            console.log(token)
+
+            this.socket = new WebSocket(this.wsurl+"?token="+token);
+
+            this.socket.onopen = function (e) {
+                console.log("连接已建立");
+            };
+            
+            this.socket.onmessage = (event) => {
+                const msg=JSON.parse(event.data);
+                if(msg.type=="system_room_update_userlist"){
+                    this.users=msg.data.user_list;
+                }else if(msg.type=="system_msg_user_login") {
+                    this.messages.push("【系统】" + msg.data.username + "加入了聊天室")
+                }else if(msg.type=="system_msg_user_logout") {
+                    this.messages.push("【系统】" + msg.data.username + "离开了聊天室")
+                }else if(msg.type=="user_send_message") {
+                    this.messages.push(msg.data.message+"("+msg.data.datetime+")")
+                }
+                else{
+                    console.log("不认识的消息类型")
+                }
+            }
+        },
+        methods:{
+            send(){
+                this.socket.send(this.sendmsg)
+            },
+        },
+    })
+</script>
+</body>
+</html>

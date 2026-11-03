@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>聊天室房间用户登录</title>
+</head>
+<body>
+<form action="/api/v1/user/login_action" method="get" onsubmit="return check(this)">
+    用户名:<input type="text" name="username"><br>
+    用户号码:<input type="text" name="phone_number"><br>
+    用户密码:<input type="text" name="password"><br>
+    <input type="submit" value="登录房间聊天室" onclick="return check(this.form)"><br>
+</form>
+</body>
+<script>
+    function check(form){
+        if(form.username.value == ""){
+            alert("请输入用户名");
+            return false;
+        }
+        if (form.phone_number.value==""){
+            alert("请输入手机号码");
+            return false;
+        }
+        if (form.password.value==""){
+            alert("请输入密码");
+            return false;
+        }
+        return true
+    }
+</script>
+</html>

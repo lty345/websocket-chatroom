@@ -1,0 +1,30 @@
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+
+# 环境变量（含真实密钥，绝不能提交）
+.env
+
+# 编辑器
+.idea/
+.vscode/
+*.swp
+
+# 运行产物
+log/
+logs/
+*.log
+*.db
+*.sqlite3
+test.db
+
+# 系统
+.DS_Store
+Thumbs.db

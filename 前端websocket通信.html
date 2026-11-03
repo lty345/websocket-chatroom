@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>前端websocket通信</title>
+</head>
+<body>
+<script>
+    var app =new Vue({
+        el:'#app',
+        data:{
+            title:"Fastapi Websocket 简易聊天室",
+            wsurl:"ws://127.0.0.1:8000/api/v1/room/socketws",
+            socket:"",
+            messages:[],
+            users:[],
+            sendmsg:"",
+        },
+        mounted () {
+            const token = new URLSearchParams(window.location.search).get("token")
+            this.initSocket()
+        },
+        methods: {
+            initSocket: function () {
+                if (typeof (WebSocket) == "undefined") {
+                    alert("您的浏览器不支持WebSocket")
+                } else {
+                    this.socket = new WebSocket(this.wsurl)
+                    this.socket.onopen = this.onopen
+                    this.socket.onmessage = this.onmessage
+                    this.socket.onerror = this.onerror
+                }
+            },
+            onopen: function () {
+                console.log("WebSocket连接成功")
+            },
+            onerror: function () {
+                this.socket.send(this.sendmsg)
+                this.sendmsg = ""
+            },
+            close: function () {
+                console.log("WebSocket连接关闭")
+            },
+            onmessage: function (msg) {
+                var obj = JSON.parse(msg.data);
+                if (obj.type === "ROOM_JSON") {
+                    this.users.push(obj.data.user_id)
+                } else if (obj.type === "USER_JOIN") {
+                    this.users.push(obj.data)
+                    this.addSystemMessage(obj.type, obj.data)
+                } else if (obj.type === "USER_LEAVE") {
+                    this.users.splice(this.users.indexOf(obj.data), 1)
+                    this.addSystemMessage(obj.type, obj.data)
+                } else if (obj.type === "USER_MSG") {
+                    this.addChatMessage(obj.data.user_id, obj.data.msg, obj.data.time)
+                }
+            },
+            addChatMessage: function (user_id, msg, datetime) {
+                this.messages.push(
+                    user_id + "说" + ":" + msg + " (" + datetime + ")"
+                )
+            },
+            addSystemMessage: function (event_type, msg) {
+                if (event_type === "USER_JOIN") {
+                    this.messages.push("系统消息:" + msg + " 加入了聊天室")
+                } else if (event_type === "USER_LEAVE") {
+                    this.messages.push("系统消息:" + msg + " 离开了聊天室")
+                }
+                console.log(msg)
+            },
+            destroyed() {
+                this.socket.onclose = this.close
+            },
+        },
+    })
+</script>
+</body>
+</html>
